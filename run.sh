@@ -33,11 +33,6 @@ fi
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}Ambiente iniciado com sucesso!${NC}"
     docker ps
-    echo -e "\n${GREEN}=== Serviços Disponíveis ===${NC}"
-    echo -e "- RabbitMQ Management UI: ${YELLOW}http://localhost:15672${NC} (User: admin / Pass: admin123)"
-    echo -e "- Kafka Broker:           ${YELLOW}localhost:9092${NC}"
-    echo -e "- gRPC Service:           ${YELLOW}localhost:50051${NC}"
-    echo -e "- REST API:               ${YELLOW}localhost:8080${NC}"
 else
     echo -e "${RED}Erro ao iniciar os containers.${NC}"
     exit 1

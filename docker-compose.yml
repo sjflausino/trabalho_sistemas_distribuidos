@@ -1,44 +1,54 @@
-version: '3.8'
-
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq_broker
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: "admin"
-      RABBITMQ_DEFAULT_PASS: "admin123"
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
-  kafka:
-    image: confluentinc/cp-kafka:7.3.0
-    container_name: kafka_broker
-    ports:
-      - "9092:9092"
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-  grpc_service:
-    build: ./grpc
-    container_name: grpc_app
+  # === MÓDULO gRPC (Ativo) ===
+  grpc_server:
+    build: 
+      context: ./grpc/server
+    container_name: grpc_server
     ports:
       - "50051:50051"
 
-  rest_service:
-    build: ./rest
-    container_name: rest_app
-    ports:
-      - "8080:8080"
+  grpc_client:
+    build: 
+      context: ./grpc/client
+    container_name: grpc_client
+    depends_on:
+      - grpc_server
+
+  # === MÓDULOS FUTUROS (Comentados) ===
+  
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: rabbitmq_broker
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: "admin"
+  #     RABBITMQ_DEFAULT_PASS: "admin123"
+
+  # zookeeper:
+  #   image: confluentinc/cp-zookeeper:7.3.0
+  #   container_name: zookeeper
+  #   environment:
+  #     ZOOKEEPER_CLIENT_PORT: 2181
+  #     ZOOKEEPER_TICK_TIME: 2000
+
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.3.0
+  #   container_name: kafka_broker
+  #   ports:
+  #     - "9092:9092"
+  #   depends_on:
+  #     - zookeeper
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # rest_service:
+  #   build: 
+  #     context: ./rest
+  #   container_name: rest_app
+  #   ports:
+  #     - "8080:8080"

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package sensor;
+// Define o pacote para a geração de código em Go
+option go_package = "./pb";
+
+// O serviço RPC encapsula as chamadas remotas
+service SensorService {
+    // Comunicação Discreta/Unária (Síncrona): O cliente envia 1 leitura e aguarda 1 resposta
+    rpc EnviarLeitura (Leitura) returns (Resposta) {}
+
+    // Comunicação por Fluxo/Streaming (Assíncrona): O servidor envia múltiplas mensagens
+    rpc ObterHistorico (Filtro) returns (stream Leitura) {}
+}
+
+message Leitura {
+    string sensor_id = 1;
+    float temperatura = 2;
+}
+
+message Resposta {
+    bool sucesso = 1;
+    string mensagem = 2;
+}
+
+message Filtro {
+    string sensor_id = 1;
+}
