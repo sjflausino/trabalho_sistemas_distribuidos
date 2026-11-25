@@ -1,0 +1,68 @@
+x-kafka: &kafka
+  image: apache/kafka:3.9.1
+  environment: &kafka-env
+    CLUSTER_ID: "4L6g3nShT-eMCtK--X86sw"
+    KAFKA_PROCESS_ROLES: broker,controller
+    KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+    KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+    KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    KAFKA_LEADER_IMBALANCE_CHECK_INTERVAL_SECONDS: 10
+    KAFKA_HEAP_OPTS: "-Xms256m -Xmx256m"
+
+services:
+  kafka1:
+    <<: *kafka
+    container_name: kafka1
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+
+  kafka2:
+    <<: *kafka
+    container_name: kafka2
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 2
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
+
+  kafka3:
+    <<: *kafka
+    container_name: kafka3
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 3
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9092
+
+  # Cria o tópico "leituras": 3 partições, cada uma replicada nos 3 brokers
+  criar_topico:
+    image: apache/kafka:3.9.1
+    container_name: kafka_criar_topico
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    command: >
+      bash -c "until /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka1:9092
+      --create --if-not-exists --topic leituras --partitions 3 --replication-factor 3;
+      do echo 'Aguardando os brokers...'; sleep 3; done"
+
+  kafka_producer:
+    build: ./producer
+    container_name: kafka_producer
+    depends_on:
+      criar_topico:
+        condition: service_completed_successfully
+
+  kafka_consumer:
+    build: ./consumer
+    container_name: kafka_consumer
+    depends_on:
+      criar_topico:
+        condition: service_completed_successfully
