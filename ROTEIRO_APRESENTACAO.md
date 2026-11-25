@@ -10,6 +10,11 @@
 # 📹 VÍDEO 1: APRESENTAÇÃO gRPC (Tempo Total: ~4min 30s)
 
 ## 🖥️ Preparação de Tela (Antes de Começar a Gravar)
+0. **Pré-iniciar containers do gRPC:**
+   ```bash
+   cd grpc
+   docker compose up --build -d
+   ```
 1. **Lado Esquerdo da Tela:** Terminal com os logs do servidor monitorando em tempo real:
    ```bash
    docker logs -f grpc_server
@@ -74,9 +79,10 @@
 # 📹 VÍDEO 2: APRESENTAÇÃO RABBITMQ (Tempo Total: ~4min 45s)
 
 ## 🖥️ Preparação de Tela (Antes de Começar a Gravar)
-1. **Infraestrutura Pré-iniciada:** Certifique-se de que os containers estão rodando:
+1. **Infraestrutura Pré-iniciada:** Certifique-se de que os containers do RabbitMQ estão rodando:
    ```bash
-   docker compose up -d rabbitmq rabbitmq_consumer rabbitmq_producer
+   cd rabbitmq
+   docker compose up --build -d
    ```
 2. **Terminal 1 (Lado Esquerdo):** Monitorando o Consumidor Go:
    ```bash

@@ -73,6 +73,7 @@ No nosso script de demonstração (`producer/producer.py`), cobrimos os 3 tipos 
 
 ```text
 rabbitmq/
+├── docker-compose.yml      # Configuração Docker Compose independente do RabbitMQ
 ├── consumer/
 │   ├── main.go             # Implementação do Consumidor em Go
 │   ├── Dockerfile          # Container do Consumidor
@@ -88,12 +89,12 @@ rabbitmq/
 
 ## 🚀 5. Como Executar
 
-O ambiente é 100% conteinerizado utilizando Docker Compose.
+O ambiente é 100% conteinerizado utilizando Docker Compose. Todos os comandos devem ser executados dentro da pasta `rabbitmq/`.
 
-**Passo 1: Suba a infraestrutura:**
-Na raiz do projeto (onde está o `docker-compose.yml`), execute:
+**Passo 1: Navegue até o diretório e suba a infraestrutura:**
 
 ```bash
+cd rabbitmq
 docker compose up --build -d
 ```
 
@@ -123,3 +124,10 @@ Você verá a saída detalhada com cada tipo de roteamento (Fanout, Direct, Topi
 - **URL:** [http://localhost:15672](http://localhost:15672)
 - **Usuário:** `admin`
 - **Senha:** `admin123`
+
+---
+
+**Passo 5: Encerrar os containers:**
+```bash
+docker compose down
+```

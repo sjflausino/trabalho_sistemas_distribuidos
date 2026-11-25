@@ -82,6 +82,7 @@ Requisito: Docker com Docker Compose. Todos os comandos são executados dentro d
 **1. Subir o cluster (terminal 1)**
 
 ```bash
+cd kafka
 docker compose up --build -d
 docker ps -a
 ```

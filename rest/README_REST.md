@@ -73,6 +73,7 @@ Requisito: Docker com Docker Compose. Todos os comandos são executados dentro d
 **1. Subir os containers (terminal 1)**
 
 ```bash
+cd rest
 docker compose up --build -d
 docker ps
 ```

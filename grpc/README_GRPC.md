@@ -28,29 +28,28 @@ No nosso arquivo de contrato (`proto/sensor.proto`), definimos o serviço `Senso
 
 ```text
 grpc/
+├── docker-compose.yml      # Configuração Docker Compose independente do gRPC
 ├── proto/
 │   └── sensor.proto        # Contrato IDL (Protocol Buffers) neutro
 ├── server/
 │   ├── main.go             # Implementação do Servidor em Go
 │   ├── Dockerfile          # Container do Servidor
 │   └── pb/                 # Stubs gerados para Go
-└── client/
-    ├── client.py           # Implementação do Cliente em Python
-    ├── Dockerfile          # Container do Cliente
-    └── sensor_pb2...       # Stubs gerados para Python
-
+├── client/
+│   ├── client.py           # Implementação do Cliente em Python
+│   ├── Dockerfile          # Container do Cliente
+│   └── sensor_pb2...       # Stubs gerados para Python
+└── README_GRPC.md
 ```
 
 ## 🚀 Como Executar
 
-O ambiente é 100% conteinerizado utilizando Docker Compose.
+O ambiente é 100% conteinerizado utilizando Docker Compose. Todos os comandos devem ser executados dentro da pasta `grpc/`.
 
-**1. Suba a infraestrutura:**
-Na raiz do projeto (onde está o `docker-compose.yml`), execute:
-
+**1. Navegue até o diretório e suba a infraestrutura:**
 ```bash
+cd grpc
 docker compose up --build -d
-
 ```
 
 **2. Acompanhe os logs do Servidor (Go):**
@@ -58,7 +57,6 @@ Abra um terminal e monitore o processamento do servidor em tempo real:
 
 ```bash
 docker logs -f grpc_server
-
 ```
 
 **3. Execute o Cliente (Python):**
@@ -66,7 +64,11 @@ Em outro terminal, dispare as chamadas remotas de dentro do container do cliente
 
 ```bash
 docker exec -it grpc_client python client.py
-
 ```
 
 Você verá a resposta instantânea da chamada Síncrona (Unária) seguida da recepção cadenciada dos dados da chamada em Fluxo (Streaming).
+
+**4. Encerrar os containers:**
+```bash
+docker compose down
+```
