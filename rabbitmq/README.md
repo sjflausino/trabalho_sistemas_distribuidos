@@ -107,6 +107,13 @@ Abra um terminal e monitore o consumidor em Go em tempo real:
 docker logs -f rabbitmq_consumer
 ```
 
+O consumidor exibirá logs estruturados detalhando em tempo real:
+- **Demonstração Fanout:** Confirmação de recebimento em broadcast com a chave de roteamento ignorada;
+- **Demonstração Direct:** Entrega seletiva por chave exata (`info`) e comportamento de Fanout para chaves compartilhadas (`erro`);
+- **Demonstração Topic:** Validação de padrões de tópicos com curingas `*` (1 palavra) e `#` (0 ou mais palavras);
+- **Interoperabilidade Polyglot:** Metadados AMQP, decodificação JSON, cálculo de latência e payload formatado;
+- **Confirmação Manual (`ACK`):** Todas as mensagens são confirmadas explicitamente pelo Go.
+
 ---
 
 **Passo 3: Execute o Produtor (Python):**
@@ -116,7 +123,7 @@ Em outro terminal, dispare as demonstrações:
 docker exec -it rabbitmq_producer python producer.py
 ```
 
-Você verá a saída detalhada com cada tipo de roteamento (Fanout, Direct, Topic) e suas regras no terminal do produtor, e a recepção das mensagens no terminal do Go!
+Você verá a saída detalhada com cada tipo de roteamento (Fanout, Direct, Topic) e suas regras no terminal do produtor, e a recepção detalhada das mensagens no terminal do Go!
 
 ---
 

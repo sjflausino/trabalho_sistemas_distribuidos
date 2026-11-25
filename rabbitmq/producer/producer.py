@@ -68,6 +68,7 @@ def demonstrar_roteamento(ch):
     print(f"  ✔ Fila SMS       recebeu: '{bs.decode()}'")
     print(f"  ✔ Fila Auditoria recebeu: '{ba.decode()}'")
     print("  -> Comprovado: A chave foi totalmente ignorada e todas as filas receberam a cópia!")
+    print("  -> Go Consumer: Fila 'q_go_fanout_emissao' também recebeu e registrou nos logs!")
 
     # -------------------------------------------------------------------------
     # 1.2 DIRECT EXCHANGE (Troca Direta)
@@ -104,6 +105,7 @@ def demonstrar_roteamento(ch):
     _, _, b_lg = ch.basic_get(queue="q_direct_logs_gerais", auto_ack=True)
     print(f"  • Fila Alertas recebeu:     {'(nenhuma msg - chave info não corresponde)' if not m_al else 'Recebeu'}")
     print(f"  ✔ Fila Logs Gerais recebeu: '{b_lg.decode()}' (chave 'info' correspondeu exatamente)")
+    print("  -> Go Consumer: Fila 'q_go_direct_logs' recebeu a mensagem com chave 'info'!")
 
     print("\n[Direct - Teste 2] Publicando com chave='erro' (várias filas com a mesma chave -> funciona como fanout):")
     ch.basic_publish(exchange=ex_d, routing_key="erro", body="Falha grave de banco de dados")
@@ -113,6 +115,7 @@ def demonstrar_roteamento(ch):
     print(f"  ✔ Fila Alertas     recebeu: '{b_al2.decode()}'")
     print(f"  ✔ Fila Logs Gerais recebeu: '{b_lg2.decode()}'")
     print("  -> Comprovado: Ambas as filas associadas a 'erro' receberam a msg (comportamento de fanout)!")
+    print("  -> Go Consumer: Ambas as filas ('q_go_direct_logs' e 'q_go_direct_alertas') registraram nos logs!")
 
     # -------------------------------------------------------------------------
     # 1.3 TOPIC EXCHANGE (Troca de Tópico)
@@ -153,6 +156,7 @@ def demonstrar_roteamento(ch):
     print(f"  ✔ Fila 'iot.sp.#'          recebeu: '{bt_sp.decode()}'")
     print(f"  ✔ Fila 'iot.#'             recebeu: '{bt_glob.decode()}'")
     print("  -> Comprovado: As 3 filas receberam a mesma mensagem (comportamento de fanout por padrão)!")
+    print("  -> Go Consumer: As 3 filas de tópico do Go capturaram a mensagem (casamento de '*' e '#')!")
 
     print("\n[Topic - Teste 2] Publicando 'iot.rj.pressao':")
     print("  (Não é de SP e não é temperatura; deve casar APENAS com 'iot.#')")
@@ -164,6 +168,7 @@ def demonstrar_roteamento(ch):
     print(f"  • Fila 'iot.*.temperatura' recebeu: {'(nenhuma msg - não casa)' if not m_temp2 else 'recebeu'}")
     print(f"  • Fila 'iot.sp.#'          recebeu: {'(nenhuma msg - não é de SP)' if not m_sp2 else 'recebeu'}")
     print(f"  ✔ Fila 'iot.#'             recebeu: '{bt_glob2.decode()}' (casou com '#')")
+    print("  -> Go Consumer: Apenas a fila global 'q_go_topic_global_tudo' (#) capturou 'iot.rj.pressao'!")
 
 
 # =============================================================================
@@ -327,24 +332,44 @@ def demonstrar_interoperabilidade(ch):
     q_go = "fila_interoperabilidade_polyglot"
     ch.queue_declare(queue=q_go, durable=True)
 
-    payload = {
-        "id_transacao": "TX-PY-2026-9901",
-        "origem": "Python (pika v1.3.2)",
-        "evento": "Leitura Telemetria Sensor IoT",
-        "valor": 2450.75,
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-    }
-    body = json.dumps(payload)
-    ch.basic_publish(
-        exchange="",
-        routing_key=q_go,
-        body=body,
-        properties=pika.BasicProperties(content_type="application/json", delivery_mode=2)
-    )
+    mensagens = [
+        {
+            "id_transacao": "TX-PY-2026-9901",
+            "origem": "Python (pika v1.3.2)",
+            "evento": "Leitura Telemetria Sensor IoT",
+            "valor": 2450.75,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        },
+        {
+            "id_transacao": "TX-PY-2026-9902",
+            "origem": "Python (pika v1.3.2)",
+            "evento": "Processamento de Pagamento PIX",
+            "valor": 389.50,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        },
+        {
+            "id_transacao": "TX-PY-2026-9903",
+            "origem": "Python (pika v1.3.2)",
+            "evento": "Alerta de Monitoramento Datacenter",
+            "valor": 0.00,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    ]
 
-    print(f"\n[Python Producer] Mensagem enviada para a fila '{q_go}':")
-    print(f"  Payload: {body}")
-    print("\n[Verificação] O container 'rabbitmq_consumer' (Go) receberá e processará esta mensagem!")
+    print(f"\n[Python Producer] Enviando {len(mensagens)} mensagens estruturadas para a fila '{q_go}':")
+    for idx, payload in enumerate(mensagens, 1):
+        payload["timestamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        body = json.dumps(payload)
+        ch.basic_publish(
+            exchange="",
+            routing_key=q_go,
+            body=body,
+            properties=pika.BasicProperties(content_type="application/json", delivery_mode=2)
+        )
+        print(f"  • Mensagem #{idx} enviada -> ID: {payload['id_transacao']} | Evento: {payload['evento']} | Valor: R$ {payload['valor']:.2f}")
+        time.sleep(0.35)
+
+    print("\n[Verificação] O container 'rabbitmq_consumer' (Go) receberá e exibirá cada mensagem em detalhes!")
     print("              Consulte os logs com: docker logs -f rabbitmq_consumer\n")
 
 
